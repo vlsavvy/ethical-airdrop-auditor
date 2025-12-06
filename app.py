@@ -207,19 +207,48 @@ with col2:
 # -----------------------------
 # Optional LLM hook (demonstration only)
 # -----------------------------
-if use_llm and api_key:
+# -----------------------------
+# Optional Gemini LLM hook (clean integration)
+# -----------------------------
+import google.generativeai as genai
+
+if use_llm:
     st.markdown("---")
-    st.subheader("LLM-powered explanation preview (optional)")
-    sample_row = df_scored.sort_values("ts", ascending=False).iloc[0]
-    prompt = f"""
-You are an explainability assistant for token airdrop/transfer anomalies.
-Event: {sample_row.to_json()}
-Return a short (1-2 sentence) human-friendly explanation of why this event is suspicious and 2 suggested mitigation steps.
+    st.subheader("Gemini-powered explanation (optional)")
+
+    gemini_api_key = st.text_input(
+        "Gemini API key (paste here; safe in Streamlit session)", 
+        type="password"
+    )
+
+    if gemini_api_key:
+        # Configure Gemini
+        genai.configure(api_key=gemini_api_key)
+        model = genai.GenerativeModel("gemini-1.5-flash")
+
+        sample_row = df_scored.sort_values("ts", ascending=False).iloc[0]
+
+        prompt = f"""
+You are an explainability assistant for blockchain token airdrop/transfer anomalies.
+
+Event JSON:
+{sample_row.to_json()}
+
+Return:
+1. A short (2–3 sentence) human explanation of why this specific event looks suspicious.
+2. Two recommended mitigation actions.
 """
-    st.code(prompt, language="text")
-    st.info("LLM call is optional. If you have an OpenAI-compatible endpoint, replace this block to call it securely.")
-    # Example placeholder code (commented out for safety)
-    st.caption("To integrate: call your LLM provider with the prompt, and display results here.")
+
+        with st.spinner("Calling Gemini…"):
+            try:
+                response = model.generate_content(prompt)
+                explanation_text = response.text
+                st.success("Gemini response:")
+                st.write(explanation_text)
+
+            except Exception as e:
+                st.error(f"Gemini error: {e}")
+
 
 # -----------------------------
 # Footer / notes
