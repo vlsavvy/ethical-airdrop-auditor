@@ -1,5 +1,8 @@
-streamlit==1.26.0
-pandas==2.2.2
-numpy==1.26.5
-python-dateutil==2.8.2
-requests==2.31.0
+numpy
+python-dateutil
+requests
+streamlit
+pandas
+matplotlib
+google-generativeai
+
